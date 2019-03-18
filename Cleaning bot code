@@ -1,0 +1,116 @@
+#include <Servo.h>//Using servo library to control ESC
+int trigPinf=13;//send signal from front
+int echoPinf=11;//receive time
+int trigPinl=1;//send signal from left
+int echoPinl=2;//receive time
+int trigPinr=3;//send signal from right
+int echoPinr=4;//receive time
+
+float pingTime;//calculate
+float SpeedofSound=343.00;//343 metres per second
+float targetDistance;//distance
+int enable_Pin0=A0;
+int inputA1=7;
+int inputA2=8;
+int inputB1=9;
+int inputB2=10;
+int enable_Pin1=A1;
+
+
+Servo esc; //Creating a servo class with name as esc
+
+
+
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(trigPinf,OUTPUT);
+  pinMode(echoPinf,INPUT);
+  pinMode(trigPinl,OUTPUT);
+  pinMode(echoPinl,INPUT);
+  pinMode(trigPinr,OUTPUT);
+  pinMode(echoPinr,INPUT);
+  pinMode(enable_Pin0,OUTPUT);
+  pinMode(enable_Pin1,OUTPUT);;
+  pinMode(inputA1,OUTPUT);
+  pinMode(inputA2,OUTPUT);
+  pinMode(inputB1,OUTPUT);
+  pinMode(inputB2,OUTPUT);  
+  esc.attach(9); //Specify the esc signal pin,Here as 9
+
+esc.writeMicroseconds(1000); //initialize the signal to 1000
+
+}
+
+void loop()
+{
+
+  digitalWrite(trigPinf,LOW);
+  digitalWrite(trigPinf,HIGH);
+  digitalWrite(trigPinf,LOW);
+  digitalWrite(trigPinl,LOW);
+  digitalWrite(trigPinl,HIGH);
+  digitalWrite(trigPinl,LOW);
+  digitalWrite(trigPinr,LOW);
+  digitalWrite(trigPinr,HIGH);
+  digitalWrite(trigPinr,LOW);
+  pingTimef=pulseIn(echoPinf,HIGH);//in microseconds
+  pingTimel=pulseIn(echoPinl,HIGH);//in microseconds
+  pingTimer=pulseIn(echoPinr,HIGH);//in microseconds
+  pingTimef=pingTimef/2000000.;
+  pingTimel=pingTimel/2000000.;
+  pingTimer=pingTimer/2000000.;
+  targetDistancef=SpeedofSound*pingTimef;
+  targetDistancel=SpeedofSound*pingTimel;
+  targetDistancer=SpeedofSound*pingTimer;
+int val; //Creating a variable val
+
+val= analogRead(A0); //Read input from analog pin a0 and store in val
+
+val= map(val, 0, 1023,1000,2000); //mapping val to minimum and maximum(Change if needed) 
+
+esc.writeMicroseconds(val); //using val as the signal to esc
+  
+  if(targetDistancef>=2)//if target distance from front is greater than or equal to two go forward
+  {
+  analogWrite(enable_Pin0,250);
+  analogWrite(enable_Pin1,250);
+    digitalWrite(inputA2,HIGH);
+     digitalWrite(inputB2,HIGH);
+        digitalWrite(inputA1,LOW);
+        digitalWrite(inputB1,LOW);
+  }
+  else      //if target distance from front is less than or equal to two
+  {
+    if(targetDistancer>=2)//if target distance from right is greater than or equal to two turn right
+    {
+      analogWrite(enable_Pin0,250);
+      analogWrite(enable_Pin1,250);
+      digitalWrite(inputA2,HIGH);
+      digitalWrite(inputB2,LOW);
+      digitalWrite(inputA1,LOW);
+      digitalWrite(inputB1,HIGH);
+    }
+    else    //if target distance from right is less than or equal to two
+    {
+      if(targetDistancel>=2)  //if target distance from left is greater than or equal to two turn left
+      {
+        analogWrite(enable_Pin0,250);
+        analogWrite(enable_Pin1,250);
+        digitalWrite(inputA2,LOW);
+        digitalWrite(inputB2,HIGH);
+        digitalWrite(inputA1,HIGH);
+        digitalWrite(inputB1,LOW); 
+      }
+      else      //if target distance from left also is greater than or equal to two then go back
+      {
+        analogWrite(enable_Pin0,250);
+        analogWrite(enable_Pin1,250);
+        digitalWrite(inputA2,LOW);
+        digitalWrite(inputB2,LOW);
+        digitalWrite(inputA1,LOW);
+        digitalWrite(inputB1,LOW); 
+      }
+  }
+}
